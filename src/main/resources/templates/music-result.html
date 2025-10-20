@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>노래 추천 결과</title>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .result-container {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .playlist {
+            list-style-type: none;
+            padding: 0;
+        }
+        .playlist li {
+            background: white;
+            margin-bottom: 10px;
+            padding: 15px;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .song-title {
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        .song-artist {
+            color: #666;
+        }
+        .comment {
+            background: #e8f5e9;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 20px;
+            border-left: 4px solid #4CAF50;
+        }
+        .back-button {
+            display: inline-block;
+            background-color: #2196F3;
+            color: white;
+            padding: 10px 15px;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+        .back-button:hover {
+            background-color: #0b7dda;
+        }
+    </style>
+</head>
+<body>
+    <h1>추천 플레이리스트</h1>
+
+    <div class="result-container">
+        <h2>이런 노래는 어떠세요?</h2>
+
+        <ul class="playlist" th:if="${musicResponse != null && musicResponse.playlist != null}">
+            <li th:each="song : ${musicResponse.playlist}">
+                <span class="song-title" th:text="${song.title}">노래 제목</span> -
+                <span class="song-artist" th:text="${song.artist}">아티스트</span>
+            </li>
+        </ul>
+
+        <p th:if="${musicResponse == null || musicResponse.playlist == null || musicResponse.playlist.isEmpty()}">
+            죄송합니다. 현재 추천할 수 있는 노래가 없습니다.
+        </p>
+
+        <div class="comment" th:if="${musicResponse != null && musicResponse.comment != null}">
+            <h2>AI의 추천 코멘트</h2>
+            <p th:text="${musicResponse.comment}">코멘트 내용</p>
+        </div>
+    </div>
+
+    <a href="/" class="back-button">다시 추천받기</a>
+</body>
+</html>
+

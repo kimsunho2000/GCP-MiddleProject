@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>노래 추천</title>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        form {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        textarea {
+            height: 100px;
+            resize: vertical;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .reset {
+            background-color: #f44336;
+            margin-left: 10px;
+        }
+        .reset:hover {
+            background-color: #d32f2f;
+        }
+    </style>
+</head>
+<body>
+    <h1>오늘의 노래 추천</h1>
+    <form action="#" th:action="@{/recommend}" th:object="${musicRequest}" method="post">
+        <div>
+            <label for="mood">오늘 하루 기분이 어떠신가요?</label>
+            <input type="text" id="mood" th:field="*{mood}" placeholder="예: 행복함, 우울함, 설렘" required />
+        </div>
+
+        <div>
+            <label for="numberOfSongs">몇 곡을 추천받고 싶으신가요?</label>
+            <input type="number" id="numberOfSongs" th:field="*{numberOfSongs}" min="1" max="10" value="5" required />
+        </div>
+
+        <div>
+            <label for="favoriteArtists">좋아하는 가수를 최대 5명까지 알려주세요 (쉼표로 구분)</label>
+            <input type="text" id="favoriteArtists" name="favoriteArtists" placeholder="예: 아이유, BTS, 테일러 스위프트" />
+        </div>
+
+        <div>
+            <label for="favoriteGenres">좋아하는 장르를 최대 5개까지 알려주세요 (쉼표로 구분)</label>
+            <input type="text" id="favoriteGenres" name="favoriteGenres" placeholder="예: 팝, 발라드, 힙합, 록" />
+        </div>
+
+        <div>
+            <label for="story">오늘 어떤 일이 있었나요?</label>
+            <textarea id="story" th:field="*{story}" placeholder="오늘 있었던 일을 간략히 알려주세요..." required></textarea>
+        </div>
+
+        <div>
+            <button type="submit">추천받기</button>
+            <button type="reset" class="reset">다시 작성</button>
+        </div>
+    </form>
+</body>
+</html>
+
