@@ -1,98 +1,375 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
 <head>
-    <title>노래 추천</title>
+    <title>노래 추천 서비스 - AI 기반 플레이리스트</title>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             font-family: 'Noto Sans KR', sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
             padding: 20px;
             line-height: 1.6;
         }
-        h1 {
-            color: #333;
+
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 50px 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 40px;
         }
-        form {
-            background: #f9f9f9;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+
+        .music-icon {
+            font-size: 4em;
+            margin-bottom: 15px;
+            animation: float 3s ease-in-out infinite;
         }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        h1 {
+            color: #667eea;
+            font-size: 2.5em;
+            font-weight: 700;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1.1em;
+            font-weight: 300;
+        }
+
+        .error-message {
+            background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+            color: #c62828;
+            padding: 18px 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            border-left: 5px solid #c62828;
+            animation: shake 0.5s ease-in-out;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 4px 12px rgba(198, 40, 40, 0.15);
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .error-message strong {
+            font-size: 1.2em;
+        }
+
+        .form-group {
+            margin-bottom: 28px;
+        }
+
         label {
             display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #333;
+            font-size: 1.05em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
-        input, textarea {
-            width: 100%;
-            padding: 8px;
-            margin-bottom: 15px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-sizing: border-box;
+
+        label .emoji {
+            font-size: 1.2em;
         }
+
+        label .required {
+            color: #e74c3c;
+            font-weight: 700;
+        }
+
+        input[type="text"],
+        input[type="number"],
         textarea {
-            height: 100px;
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            font-family: 'Noto Sans KR', sans-serif;
+            background: #fafafa;
+        }
+
+        input:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
+        }
+
+        input::placeholder,
+        textarea::placeholder {
+            color: #aaa;
+        }
+
+        textarea {
+            height: 130px;
             resize: vertical;
+            line-height: 1.6;
         }
+
+        .field-error {
+            color: #c62828;
+            font-size: 0.9em;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 500;
+        }
+
+        .field-error::before {
+            content: "⚠️";
+        }
+
+        input.error,
+        textarea.error {
+            border-color: #e74c3c;
+            background: #fff5f5;
+        }
+
+        .help-text {
+            color: #888;
+            font-size: 0.9em;
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .help-text::before {
+            content: "💡";
+            font-size: 1.1em;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 35px;
+        }
+
         button {
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 15px;
+            flex: 1;
+            padding: 16px;
             border: none;
-            border-radius: 4px;
+            border-radius: 12px;
+            font-size: 1.15em;
+            font-weight: 700;
             cursor: pointer;
-            font-size: 16px;
+            transition: all 0.3s ease;
+            font-family: 'Noto Sans KR', sans-serif;
+            position: relative;
+            overflow: hidden;
         }
-        button:hover {
-            background-color: #45a049;
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
         }
-        .reset {
-            background-color: #f44336;
-            margin-left: 10px;
+
+        button:active::before {
+            width: 300px;
+            height: 300px;
         }
-        .reset:hover {
-            background-color: #d32f2f;
+
+        button[type="submit"] {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        button[type="submit"]:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        button[type="submit"]:active {
+            transform: translateY(-1px);
+        }
+
+        button[type="reset"] {
+            background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+            color: #666;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        button[type="reset"]:hover {
+            background: linear-gradient(135deg, #e0e0e0 0%, #d5d5d5 100%);
+            transform: translateY(-2px);
+        }
+
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #e0e0e0, transparent);
+            margin: 35px 0;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 30px 25px;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
 <body>
-    <h1>오늘의 노래 추천</h1>
-    <form action="#" th:action="@{/recommend}" th:object="${musicRequest}" method="post">
-        <div>
-            <label for="mood">오늘 하루 기분이 어떠신가요?</label>
-            <input type="text" id="mood" th:field="*{mood}" placeholder="예: 행복함, 우울함, 설렘" required />
+    <div class="container">
+        <div class="header">
+            <div class="music-icon">🎵</div>
+            <h1>오늘의 노래 추천</h1>
+            <p class="subtitle">AI가 당신의 하루에 완벽한 플레이리스트를 만들어드립니다</p>
         </div>
 
-        <div>
-            <label for="numberOfSongs">몇 곡을 추천받고 싶으신가요?</label>
-            <input type="number" id="numberOfSongs" th:field="*{numberOfSongs}" min="1" max="10" value="5" required />
+        <!-- 글로벌 에러 메시지 -->
+        <div th:if="${errorMessage}" class="error-message">
+            <strong>⚠️</strong>
+            <span th:text="${errorMessage}"></span>
         </div>
 
-        <div>
-            <label for="favoriteArtists">좋아하는 가수를 최대 5명까지 알려주세요 (쉼표로 구분)</label>
-            <input type="text" id="favoriteArtists" name="favoriteArtists" placeholder="예: 아이유, BTS, 테일러 스위프트" />
-        </div>
+        <form action="#" th:action="@{/recommend}" th:object="${musicRequest}" method="post">
+            <div class="form-group">
+                <label for="mood">
+                    <span class="emoji">😊</span>
+                    오늘 하루 기분이 어떠신가요?
+                    <span class="required">*</span>
+                </label>
+                <input type="text"
+                       id="mood"
+                       th:field="*{mood}"
+                       th:class="${#fields.hasErrors('mood')} ? 'error' : ''"
+                       placeholder="예: 행복함, 우울함, 설렘, 평온함, 신남" />
+                <span class="field-error" th:if="${#fields.hasErrors('mood')}" th:errors="*{mood}"></span>
+            </div>
 
-        <div>
-            <label for="favoriteGenres">좋아하는 장르를 최대 5개까지 알려주세요 (쉼표로 구분)</label>
-            <input type="text" id="favoriteGenres" name="favoriteGenres" placeholder="예: 팝, 발라드, 힙합, 록" />
-        </div>
+            <div class="form-group">
+                <label for="numberOfSongs">
+                    <span class="emoji">🔢</span>
+                    몇 곡을 추천받고 싶으신가요?
+                    <span class="required">*</span>
+                </label>
+                <input type="number"
+                       id="numberOfSongs"
+                       th:field="*{numberOfSongs}"
+                       th:class="${#fields.hasErrors('numberOfSongs')} ? 'error' : ''"
+                       min="1"
+                       max="10"
+                       value="5" />
+                <span class="help-text">1곡부터 10곡까지 선택할 수 있어요</span>
+                <span class="field-error" th:if="${#fields.hasErrors('numberOfSongs')}" th:errors="*{numberOfSongs}"></span>
+            </div>
 
-        <div>
-            <label for="story">오늘 어떤 일이 있었나요?</label>
-            <textarea id="story" th:field="*{story}" placeholder="오늘 있었던 일을 간략히 알려주세요..." required></textarea>
-        </div>
+            <div class="divider"></div>
 
-        <div>
-            <button type="submit">추천받기</button>
-            <button type="reset" class="reset">다시 작성</button>
-        </div>
-    </form>
+            <div class="form-group">
+                <label for="favoriteArtists">
+                    <span class="emoji">🎤</span>
+                    좋아하는 가수 (선택사항)
+                </label>
+                <input type="text"
+                       id="favoriteArtists"
+                       name="favoriteArtists"
+                       th:class="${#fields.hasErrors('favoriteArtists')} ? 'error' : ''"
+                       placeholder="예: 아이유, BTS, 뉴진스, 아리아나 그란데, 찰리 푸스" />
+                <span class="help-text">쉼표로 구분해서 최대 5명까지 입력할 수 있어요</span>
+                <span class="field-error" th:if="${#fields.hasErrors('favoriteArtists')}" th:errors="*{favoriteArtists}"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="favoriteGenres">
+                    <span class="emoji">🎸</span>
+                    좋아하는 장르 (선택사항)
+                </label>
+                <input type="text"
+                       id="favoriteGenres"
+                       name="favoriteGenres"
+                       th:class="${#fields.hasErrors('favoriteGenres')} ? 'error' : ''"
+                       placeholder="예: 팝, 발라드, 힙합, 록, 재즈, 인디" />
+                <span class="help-text">쉼표로 구분해서 최대 5개까지 입력할 수 있어요</span>
+                <span class="field-error" th:if="${#fields.hasErrors('favoriteGenres')}" th:errors="*{favoriteGenres}"></span>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="form-group">
+                <label for="story">
+                    <span class="emoji">📖</span>
+                    오늘 어떤 일이 있었나요?
+                    <span class="required">*</span>
+                </label>
+                <textarea id="story"
+                          th:field="*{story}"
+                          th:class="${#fields.hasErrors('story')} ? 'error' : ''"
+                          placeholder="오늘 있었던 일이나 느낀 감정을 자유롭게 적어주세요. AI가 당신의 이야기를 바탕으로 완벽한 노래를 추천해드립니다..."></textarea>
+                <span class="field-error" th:if="${#fields.hasErrors('story')}" th:errors="*{story}"></span>
+            </div>
+
+            <div class="button-group">
+                <button type="submit">🎵 추천받기</button>
+                <button type="reset">↻ 다시 작성</button>
+            </div>
+        </form>
+    </div>
 </body>
 </html>
-

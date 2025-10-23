@@ -12,5 +12,4 @@ import lombok.Setter;
 @ConfigurationProperties(prefix = "gemini")
 public class GeminiProperties {
     private String apiKey;
-    private String url;
 }

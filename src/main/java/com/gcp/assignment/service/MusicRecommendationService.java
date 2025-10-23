@@ -1,70 +1,91 @@
 package com.gcp.assignment.service;
 
-import com.gcp.assignment.configuer.GeminiProperties;
 import com.gcp.assignment.dto.MusicRequest;
 import com.gcp.assignment.dto.MusicResponse;
-import com.fasterxml.jackson.databind.JsonNode;
+import com.gcp.assignment.exception.MusicRecommendationException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.genai.Client;
+import com.google.genai.types.GenerateContentResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.MediaType;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClient;
 
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.Map;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MusicRecommendationService {
 
-    private final GeminiProperties geminiProperties;
-    private final RestClient geminiClient;
+    private final Client geminiClient;
     private final ObjectMapper objectMapper;
 
     public MusicResponse getMusicRecommendation(MusicRequest request) {
         try {
+            validateRequest(request);
             String prompt = buildPrompt(request);
+            log.info("Gemini API 호출 시작");
 
-            Map<String, Object> requestBody = new HashMap<>();
-            Map<String, Object> contents = new HashMap<>();
-            Map<String, Object> parts = new HashMap<>();
+            // Gemini API 호출
+            GenerateContentResponse response = geminiClient.models.generateContent(
+                    "gemini-2.0-flash-exp",
+                    prompt,
+                    null
+            );
 
-            parts.put("text", prompt);
-            contents.put("parts", new Object[]{parts});
-            requestBody.put("contents", new Object[]{contents});
+            String textResponse = response.text();
 
-            String jsonResponse = geminiClient.post()
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(requestBody)
-                    .retrieve()
-                    .body(String.class);
+            if (textResponse == null || textResponse.trim().isEmpty()) {
+                throw new MusicRecommendationException("AI로부터 응답을 받지 못했습니다.");
+            }
 
-            // JSON 응답에서 필요한 부분 추출
-            JsonNode responseNode = objectMapper.readTree(jsonResponse);
-            String textResponse = responseNode.path("candidates").get(0)
-                    .path("content").path("parts").get(0)
-                    .path("text").asText();
+            log.debug("Gemini API 응답 수신: {} characters", textResponse.length());
 
             // JSON 형식의 응답에서 중괄호 부분만 추출
             String jsonPart = extractJsonFromText(textResponse);
 
             // JSON을 MusicResponse 객체로 변환
-            return objectMapper.readValue(jsonPart, MusicResponse.class);
+            MusicResponse musicResponse = objectMapper.readValue(jsonPart, MusicResponse.class);
 
+            if (musicResponse.getPlaylist() == null || musicResponse.getPlaylist().isEmpty()) {
+                throw new MusicRecommendationException("추천된 노래가 없습니다. 다시 시도해주세요.");
+            }
+
+            log.info("음악 추천 완료: {} 곡", musicResponse.getPlaylist().size());
+            return musicResponse;
+
+        } catch (MusicRecommendationException e) {
+            throw e;
         } catch (Exception e) {
-            e.printStackTrace();
-            return new MusicResponse(); // 오류 발생 시 빈 응답 반환
+            log.error("음악 추천 중 오류 발생", e);
+            throw new MusicRecommendationException("음악 추천 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.", e);
+        }
+    }
+
+    private void validateRequest(MusicRequest request) {
+        if (request == null) {
+            throw new IllegalArgumentException("요청 정보가 없습니다.");
+        }
+        if (request.getNumberOfSongs() != null && (request.getNumberOfSongs() < 1 || request.getNumberOfSongs() > 10)) {
+            throw new IllegalArgumentException("추천 곡 수는 1~10 사이여야 합니다.");
         }
     }
 
     private String buildPrompt(MusicRequest request) {
+        String artists = (request.getFavoriteArtists() != null && !request.getFavoriteArtists().isEmpty())
+            ? String.join(", ", request.getFavoriteArtists())
+            : "없음";
+        String genres = (request.getFavoriteGenres() != null && !request.getFavoriteGenres().isEmpty())
+            ? String.join(", ", request.getFavoriteGenres())
+            : "없음";
+
         return String.format("""
                 오늘 날씨는 맑음, 계절은 %s이야.
                 내 기분은 %s이고, 오늘은 %s와 같은 일이 있었어.
                 내가 좋아하는 아티스트는 %s, 장르는 %s야.
+                꼭 좋아하는 아티스트의 노래만 추천할 필요는 없어.
                 이 모든 걸 고려해서 노래를 %d곡 추천해줘.
-                추천된 노래는 JSON 형식으로만 반환해줘.
+                추천된 노래는 반드시 JSON 형식으로만 반환해줘. 다른 텍스트는 포함하지 마.
                 JSON 형식은 다음과 같아.
                 {
                   "playlist": [
@@ -73,19 +94,23 @@ public class MusicRecommendationService {
                       "artist": "아티스트"
                     }
                   ],
-                  "comment": "이렇게 추천한 이유에 대한 코멘트"
+                  "comment": "이렇게 추천한 이유에 대한 자세한 코멘트"
                 }
                 """,
                 getSeason(),
                 request.getMood(),
                 request.getStory(),
-                String.join(", ", request.getFavoriteArtists()),
-                String.join(", ", request.getFavoriteGenres()),
+                artists,
+                genres,
                 request.getNumberOfSongs()
         );
     }
 
     private String extractJsonFromText(String text) {
+        if (text == null || text.trim().isEmpty()) {
+            throw new MusicRecommendationException("AI 응답이 비어있습니다.");
+        }
+
         // JSON 형식의 데이터 찾기 (중괄호로 둘러싸인 부분)
         int start = text.indexOf("{");
         int end = text.lastIndexOf("}") + 1;
@@ -94,8 +119,7 @@ public class MusicRecommendationService {
             return text.substring(start, end);
         }
 
-        // JSON을 찾을 수 없는 경우 빈 객체 반환
-        return "{}";
+        throw new MusicRecommendationException("AI 응답에서 JSON 데이터를 찾을 수 없습니다. 다시 시도해주세요.");
     }
 
     private String getSeason() {

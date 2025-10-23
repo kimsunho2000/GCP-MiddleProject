@@ -1,92 +1,284 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>노래 추천 결과</title>
+    <title>추천 플레이리스트</title>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             font-family: 'Noto Sans KR', sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
             padding: 20px;
             line-height: 1.6;
         }
-        h1, h2 {
-            color: #333;
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: fadeIn 0.5s ease-out;
         }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         h1 {
+            color: #667eea;
             text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .music-icon {
+            text-align: center;
+            font-size: 3em;
+            margin-bottom: 20px;
+        }
+
+        .request-summary {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            border-left: 4px solid #667eea;
+        }
+
+        .request-summary h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .request-summary p {
+            color: #555;
+            margin: 5px 0;
+            line-height: 1.8;
+        }
+
+        .playlist-section {
             margin-bottom: 30px;
         }
-        .result-container {
-            background: #f9f9f9;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+
+        .playlist-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
+
         .playlist {
             list-style-type: none;
             padding: 0;
         }
+
         .playlist li {
-            background: white;
-            margin-bottom: 10px;
-            padding: 15px;
-            border-radius: 4px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            margin-bottom: 15px;
+            padding: 20px;
+            border-radius: 12px;
+            transition: all 0.3s;
+            border-left: 4px solid #667eea;
+            animation: slideIn 0.3s ease-out;
+            animation-fill-mode: both;
         }
+
+        .playlist li:nth-child(1) { animation-delay: 0.1s; }
+        .playlist li:nth-child(2) { animation-delay: 0.2s; }
+        .playlist li:nth-child(3) { animation-delay: 0.3s; }
+        .playlist li:nth-child(4) { animation-delay: 0.4s; }
+        .playlist li:nth-child(5) { animation-delay: 0.5s; }
+        .playlist li:nth-child(6) { animation-delay: 0.6s; }
+        .playlist li:nth-child(7) { animation-delay: 0.7s; }
+        .playlist li:nth-child(8) { animation-delay: 0.8s; }
+        .playlist li:nth-child(9) { animation-delay: 0.9s; }
+        .playlist li:nth-child(10) { animation-delay: 1s; }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .playlist li:hover {
+            transform: translateX(10px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .song-number {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background: #667eea;
+            color: white;
+            text-align: center;
+            line-height: 30px;
+            border-radius: 50%;
+            margin-right: 15px;
+            font-weight: 700;
+        }
+
         .song-title {
-            font-weight: bold;
-            color: #4CAF50;
+            font-weight: 700;
+            color: #333;
+            font-size: 1.1em;
         }
+
         .song-artist {
             color: #666;
+            margin-left: 10px;
         }
-        .comment {
-            background: #e8f5e9;
+
+        .comment-section {
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            border-left: 4px solid #4caf50;
+        }
+
+        .comment-section h2 {
+            color: #2e7d32;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .comment-section p {
+            color: #1b5e20;
+            line-height: 1.8;
+            font-size: 1.05em;
+        }
+
+        .empty-message {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            font-size: 1.2em;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            flex: 1;
             padding: 15px;
-            border-radius: 4px;
-            margin-top: 20px;
-            border-left: 4px solid #4CAF50;
-        }
-        .back-button {
-            display: inline-block;
-            background-color: #2196F3;
-            color: white;
-            padding: 10px 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
             text-decoration: none;
-            border-radius: 4px;
-            margin-top: 20px;
+            display: inline-block;
+            text-align: center;
+            font-family: 'Noto Sans KR', sans-serif;
         }
-        .back-button:hover {
-            background-color: #0b7dda;
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f5f5f5;
+            color: #666;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
         }
     </style>
 </head>
 <body>
-    <h1>추천 플레이리스트</h1>
+    <div class="container">
+        <div class="music-icon">🎶</div>
+        <h1>추천 플레이리스트</h1>
+        <p class="subtitle">AI가 선정한 당신을 위한 특별한 플레이리스트입니다</p>
 
-    <div class="result-container">
-        <h2>이런 노래는 어떠세요?</h2>
+        <!-- 요청 정보 요약 -->
+        <div class="request-summary" th:if="${musicRequest != null}">
+            <h3>📝 당신의 하루</h3>
+            <p><strong>기분:</strong> <span th:text="${musicRequest.mood}"></span></p>
+            <p><strong>오늘의 이야기:</strong> <span th:text="${musicRequest.story}"></span></p>
+            <p th:if="${musicRequest.favoriteArtists != null && !musicRequest.favoriteArtists.isEmpty()}">
+                <strong>좋아하는 아티스트:</strong> <span th:text="${#strings.listJoin(musicRequest.favoriteArtists, ', ')}"></span>
+            </p>
+            <p th:if="${musicRequest.favoriteGenres != null && !musicRequest.favoriteGenres.isEmpty()}">
+                <strong>좋아하는 장르:</strong> <span th:text="${#strings.listJoin(musicRequest.favoriteGenres, ', ')}"></span>
+            </p>
+        </div>
 
-        <ul class="playlist" th:if="${musicResponse != null && musicResponse.playlist != null}">
-            <li th:each="song : ${musicResponse.playlist}">
-                <span class="song-title" th:text="${song.title}">노래 제목</span> -
-                <span class="song-artist" th:text="${song.artist}">아티스트</span>
-            </li>
-        </ul>
+        <!-- 플레이리스트 -->
+        <div class="playlist-section" th:if="${musicResponse != null && musicResponse.playlist != null && !musicResponse.playlist.isEmpty()}">
+            <h2>🎵 추천 플레이리스트</h2>
+            <ul class="playlist">
+                <li th:each="song, iterStat : ${musicResponse.playlist}">
+                    <span class="song-number" th:text="${iterStat.count}">1</span>
+                    <span class="song-title" th:text="${song.title}">노래 제목</span>
+                    <span class="song-artist" th:text="'- ' + ${song.artist}">아티스트</span>
+                </li>
+            </ul>
+        </div>
 
-        <p th:if="${musicResponse == null || musicResponse.playlist == null || musicResponse.playlist.isEmpty()}">
-            죄송합니다. 현재 추천할 수 있는 노래가 없습니다.
-        </p>
+        <!-- 빈 플레이리스트 메시지 -->
+        <div class="empty-message" th:if="${musicResponse == null || musicResponse.playlist == null || musicResponse.playlist.isEmpty()}">
+            <p>😢 죄송합니다. 현재 추천할 수 있는 노래가 없습니다.</p>
+        </div>
 
-        <div class="comment" th:if="${musicResponse != null && musicResponse.comment != null}">
-            <h2>AI의 추천 코멘트</h2>
+        <!-- AI 코멘트 -->
+        <div class="comment-section" th:if="${musicResponse != null && musicResponse.comment != null && !musicResponse.comment.isEmpty()}">
+            <h2>💬 AI의 추천 이유</h2>
             <p th:text="${musicResponse.comment}">코멘트 내용</p>
         </div>
-    </div>
 
-    <a href="/" class="back-button">다시 추천받기</a>
+        <!-- 버튼 그룹 -->
+        <div class="button-group">
+            <a href="/" class="btn btn-primary">🔄 다시 추천받기</a>
+        </div>
+    </div>
 </body>
 </html>
-
