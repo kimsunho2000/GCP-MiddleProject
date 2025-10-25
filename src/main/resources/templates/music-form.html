@@ -82,7 +82,7 @@
             margin-bottom: 25px;
             border-left: 5px solid #c62828;
             animation: shake 0.5s ease-in-out;
-            display: flex;
+            display: flex;\
             align-items: center;
             gap: 12px;
             box-shadow: 0 4px 12px rgba(198, 40, 40, 0.15);
@@ -331,7 +331,7 @@
                        id="favoriteArtists"
                        name="favoriteArtists"
                        th:class="${#fields.hasErrors('favoriteArtists')} ? 'error' : ''"
-                       placeholder="예: 아이유, BTS, 뉴진스, 아리아나 그란데, 찰리 푸스" />
+                       placeholder="예: 아이유, BTS, 뉴진스, 오아시스, 로이킴" />
                 <span class="help-text">쉼표로 구분해서 최대 5명까지 입력할 수 있어요</span>
                 <span class="field-error" th:if="${#fields.hasErrors('favoriteArtists')}" th:errors="*{favoriteArtists}"></span>
             </div>
